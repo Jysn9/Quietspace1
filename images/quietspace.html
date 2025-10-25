@@ -1,0 +1,351 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+</body>
+</html><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Secret Notes — Quiet Space</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#ffffff;--muted:#7b7f93;--accent:#7fb3ff;--glass:rgba(255,255,255,0.6)}
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; background:linear-gradient(180deg,#f3f6ff 0%,var(--bg) 50%); color:#16202a}
+    .wrap{max-width:980px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;gap:16px}
+    header h1{margin:0;font-size:20px}
+    .subtitle{color:var(--muted);font-size:13px}
+
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:20px;margin-top:18px}
+    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(32,40,70,0.06)}
+
+    /* Left column */
+    .controls{display:flex;flex-direction:column;gap:12px}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    input[type=text], textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #eef2f7;font-size:14px}
+    textarea{min-height:160px;resize:vertical}
+    .row{display:flex;gap:8px;align-items:center}
+    button{background:var(--accent);color:white;padding:10px 12px;border-radius:10px;border:0;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;color:var(--muted);border:1px solid #eef2f7}
+    .small{font-size:13px;padding:8px 10px}
+
+    .notes-list{max-height:520px;overflow:auto;padding-top:8px}
+    .note-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;margin-bottom:8px;border:1px solid #f1f4fb}
+    .note-meta{display:flex;flex-direction:column}
+    .note-title{font-weight:600}
+    .meta-muted{font-size:12px;color:var(--muted)}
+    .pill{font-size:12px;padding:6px 8px;border-radius:999px;background:#f3f6ff}
+
+    /* Right column */
+    .viewer{min-height:420px}
+    .viewer h2{margin-top:0}
+    .note-body{white-space:pre-wrap;background:linear-gradient(180deg,rgba(255,255,255,0.6),transparent);padding:16px;border-radius:10px;border:1px dashed #eef2f7;min-height:300px}
+
+    .footer{margin-top:16px;color:var(--muted);font-size:13px}
+
+    /* responsive */
+    @media (max-width:880px){.grid{grid-template-columns:1fr;}.notes-list{max-height:260px}}
+
+    /* subtle helpers */
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%237fb3ff'/%3E%3Cpath d='M8 12c0-2 2-4 4-4s4 2 4 4-4 6-4 6-4-4-4-6z' fill='%23fff'/%3E%3C/svg%3E" alt="logo" style="width:44px;height:44px;border-radius:10px;box-shadow:0 6px 14px rgba(127,179,255,0.15)"/>
+      <div>
+        <h1>Secret Notes — Quiet Space</h1>
+        <div class="subtitle">A private place to write thoughts, prayers, and God's word.</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- left column: create + list -->
+      <div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:700">Write a note</div>
+            <div class="muted" style="font-size:13px">Local-only • client-side</div>
+          </div>
+
+          <div class="controls">
+            <div>
+              <label for="title">Title</label>
+              <input id="title" type="text" placeholder="Short title (optional)" />
+            </div>
+            <div>
+              <label for="content">Your note</label>
+              <textarea id="content" placeholder="Write your thoughts, prayers, Bible verses..."></textarea>
+            </div>
+
+            <div class="row">
+              <label style="display:flex;align-items:center;gap:8px"><input id="private" type="checkbox"/> <span style="font-size:14px">Mark as private (encrypt)</span></label>
+            </div>
+
+            <div class="row" style="justify-content:space-between">
+              <div style="display:flex;gap:8px">
+                <button id="saveBtn">Save note</button>
+                <button id="clearBtn" class="ghost">Clear</button>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button id="exportBtn" class="small ghost">Export</button>
+                <button id="importBtn" class="small ghost">Import</button>
+              </div>
+            </div>
+            <div class="footer">Tip: When "private" is checked you will be asked for a password to encrypt the note. Keep that password safe — without it the note cannot be read.</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:700">My notes</div>
+            <input id="search" type="text" placeholder="Search notes..." style="width:160px;padding:8px;border-radius:8px;border:1px solid #eef2f7"/>
+          </div>
+          <div class="notes-list" id="notesList" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <!-- right column: viewer -->
+      <div>
+        <div class="card viewer">
+          <h2 id="viewTitle">Select a note to read</h2>
+          <div class="muted" id="viewMeta"></div>
+          <div class="note-body" id="viewBody">Your selected note will appear here.</div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button id="editBtn" class="ghost small">Edit</button>
+            <button id="deleteBtn" class="small ghost">Delete</button>
+            <button id="verseBtn" class="small">Verse of the day</button>
+          </div>
+
+          <div style="margin-top:12px" class="muted">All notes are stored locally in your browser (localStorage). Keep backups by using Export.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------------------------------
+    // Simple client-side encrypted secret notes
+    // Notes structure stored in localStorage under 'secretNotes_v1'
+    // Each note: {id, title, createdAt, updatedAt, encrypted:boolean, data: string, iv?, salt?}
+    // If encrypted: data is base64 ciphertext, iv and salt are base64
+    // Encryption uses WebCrypto: PBKDF2(password, salt) -> AES-GCM key
+    // ------------------------------
+
+    // helpers
+    const $ = id => document.getElementById(id);
+    const storageKey = 'secretNotes_v1';
+
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+    function toBase64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+    function fromBase64(str){ const bin = atob(str); const arr = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr.buffer; }
+    const enc = new TextEncoder(); const dec = new TextDecoder();
+
+    async function deriveKey(password, salt) {
+      const passKey = await window.crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+      return await window.crypto.subtle.deriveKey({name:'PBKDF2',salt: salt, iterations: 200000, hash:'SHA-256'}, passKey, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+    }
+
+    async function encryptString(plaintext, password){
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveKey(password, salt.buffer);
+      const ciphertext = await crypto.subtle.encrypt({name:'AES-GCM', iv: iv}, key, enc.encode(plaintext));
+      return {data: toBase64(ciphertext), iv: toBase64(iv.buffer), salt: toBase64(salt.buffer)};
+    }
+
+    async function decryptString(b64cipher, b64iv, b64salt, password){
+      try{
+        const salt = fromBase64(b64salt);
+        const iv = fromBase64(b64iv);
+        const key = await deriveKey(password, salt);
+        const plainBuf = await crypto.subtle.decrypt({name:'AES-GCM', iv: iv}, key, fromBase64(b64cipher));
+        return dec.decode(plainBuf);
+      }catch(e){ throw new Error('Decryption failed — wrong password or corrupted data.'); }
+    }
+
+    // storage helpers
+    function loadNotes(){
+      const raw = localStorage.getItem(storageKey);
+      return raw ? JSON.parse(raw) : [];
+    }
+    function saveNotes(notes){ localStorage.setItem(storageKey, JSON.stringify(notes)); }
+
+    // UI bindings
+    const titleEl = $('title'); const contentEl = $('content'); const privateEl = $('private');
+    const saveBtn = $('saveBtn'); const clearBtn = $('clearBtn'); const notesList = $('notesList'); const searchEl = $('search');
+    const viewTitle = $('viewTitle'); const viewMeta = $('viewMeta'); const viewBody = $('viewBody');
+    const editBtn = $('editBtn'); const deleteBtn = $('deleteBtn'); const exportBtn = $('exportBtn'); const importBtn = $('importBtn'); const verseBtn = $('verseBtn');
+
+    let selectedNoteId = null;
+
+    function renderNotes(filter=''){
+      const notes = loadNotes().slice().reverse(); // newest first
+      notesList.innerHTML = '';
+      const q = filter.trim().toLowerCase();
+      for(const n of notes){
+        if(q){ const hay = (n.title || '') + ' ' + (n.encrypted ? '[private]' : (n.data || '')); if(!hay.toLowerCase().includes(q)) continue; }
+        const el = document.createElement('div'); el.className='note-item';
+        const left = document.createElement('div'); left.className='note-meta';
+        const t = document.createElement('div'); t.className='note-title'; t.textContent = n.title || '— untitled —';
+        const m = document.createElement('div'); m.className='meta-muted'; m.textContent = new Date(n.updatedAt||n.createdAt).toLocaleString();
+        left.appendChild(t); left.appendChild(m);
+        const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px'; right.style.alignItems='center';
+        const p = document.createElement('div'); p.className='pill'; p.textContent = n.encrypted ? 'private' : 'open';
+        const openBtn = document.createElement('button'); openBtn.className='small ghost'; openBtn.textContent='Open'; openBtn.onclick = ()=>selectNote(n.id);
+        right.appendChild(p); right.appendChild(openBtn);
+        el.appendChild(left); el.appendChild(right);
+        notesList.appendChild(el);
+      }
+      if(!notesList.children.length) notesList.innerHTML='<div class="muted" style="padding:12px">No notes yet — write your first note.</div>';
+    }
+
+    async function selectNote(id){
+      const notes = loadNotes(); const note = notes.find(x=>x.id===id);
+      if(!note) return;
+      selectedNoteId = id; updateViewerLoading(true);
+      viewTitle.textContent = note.title || '— untitled —';
+      viewMeta.textContent = (note.encrypted ? 'Private note • ' : '') + 'Created: ' + new Date(note.createdAt).toLocaleString();
+      if(note.encrypted){
+        try{
+          const pw = prompt('This note is private. Enter password to decrypt it:');
+          if(pw===null){ updateViewerLoading(false); return; }
+          const plain = await decryptString(note.data, note.iv, note.salt, pw);
+          viewBody.textContent = plain;
+        }catch(e){ viewBody.textContent = '🔒 Unable to open note — wrong password or corrupted data.'; }
+      }else{
+        viewBody.textContent = note.data || '';
+      }
+      updateViewerLoading(false);
+    }
+
+    function updateViewerLoading(isLoading){ if(isLoading){ viewBody.textContent='Loading...'; } }
+
+    saveBtn.addEventListener('click', async ()=>{
+      const title = titleEl.value.trim(); const content = contentEl.value.trim(); const wantPrivate = privateEl.checked;
+      if(!content){ alert('Please write something before saving.'); return; }
+      saveBtn.disabled = true; saveBtn.textContent='Saving...';
+      try{
+        const notes = loadNotes();
+        const now = Date.now();
+        if(wantPrivate){
+          const pw = prompt('Enter a password to encrypt this note (you will need it to read later):');
+          if(!pw){ alert('Note not saved — encryption password required.'); return; }
+          const encRes = await encryptString(content, pw);
+          const note = {id: uid(), title, createdAt: now, updatedAt: now, encrypted:true, data: encRes.data, iv: encRes.iv, salt: encRes.salt};
+          notes.push(note); saveNotes(notes);
+        }else{
+          const note = {id: uid(), title, createdAt: now, updatedAt: now, encrypted:false, data: content};
+          notes.push(note); saveNotes(notes);
+        }
+        titleEl.value=''; contentEl.value=''; privateEl.checked=false; renderNotes(searchEl.value);
+      }catch(e){ console.error(e); alert('Failed to save note: '+e.message); }
+      saveBtn.disabled=false; saveBtn.textContent='Save note';
+    });
+
+    clearBtn.addEventListener('click', ()=>{ if(confirm('Clear the current form?')){ titleEl.value=''; contentEl.value=''; privateEl.checked=false; } });
+
+    deleteBtn.addEventListener('click', ()=>{
+      if(!selectedNoteId) return alert('Select a note first');
+      if(!confirm('Delete this note? This cannot be undone.')) return;
+      const notes = loadNotes(); const idx = notes.findIndex(n=>n.id===selectedNoteId); if(idx>=0) notes.splice(idx,1); saveNotes(notes); selectedNoteId=null; viewTitle.textContent='Select a note to read'; viewBody.textContent='Your selected note will appear here.'; renderNotes(searchEl.value);
+    });
+
+    editBtn.addEventListener('click', async ()=>{
+      if(!selectedNoteId) return alert('Select a note to edit');
+      const notes = loadNotes(); const note = notes.find(n=>n.id===selectedNoteId);
+      if(!note) return;
+      if(note.encrypted){
+        const pw = prompt('Enter password to decrypt for editing:'); if(pw===null) return;
+        try{ const plain = await decryptString(note.data, note.iv, note.salt, pw); titleEl.value = note.title || ''; contentEl.value = plain; privateEl.checked = true; // editing encrypted note
+          // remove old note so saving will create new updated one
+          notes.splice(notes.findIndex(x=>x.id===selectedNoteId),1); saveNotes(notes); renderNotes(searchEl.value);
+        }catch(e){ alert('Cannot decrypt — wrong password.'); }
+      }else{
+        titleEl.value = note.title || ''; contentEl.value = note.data || ''; privateEl.checked=false; notes.splice(notes.findIndex(x=>x.id===selectedNoteId),1); saveNotes(notes); renderNotes(searchEl.value);
+      }
+    });
+
+    searchEl.addEventListener('input', ()=>renderNotes(searchEl.value));
+
+    exportBtn.addEventListener('click', ()=>{
+      const data = localStorage.getItem(storageKey) || '[]';
+      const blob = new Blob([data], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'secret-notes-export.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener('click', ()=>{
+      const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange = e =>{
+        const f = e.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = ev =>{
+          try{ const imported = JSON.parse(ev.target.result); if(!Array.isArray(imported)) throw new Error('Invalid file'); saveNotes(imported); renderNotes(); alert('Imported '+imported.length+' notes.'); }catch(err){ alert('Import failed: '+err.message); }
+        }; reader.readAsText(f);
+      }; inp.click();
+    });
+
+    // Verse of the day (simple static pick from list)
+    const verses = [
+      'Jeremiah 29:11 — For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.',
+      'Romans 8:28 – “And we know that in all things God works for the good of those who love him.',
+      'Philippians 4:13 – “I can do all things through Christ who strengthens me.',
+      'Proverbs 3:5 — Trust in the Lord with all your heart and lean not on your own understanding.',
+      'Matthew 11:28 — Come to me, all you who are weary and burdened, and I will give you rest.',
+      'Isaiah 41:10 – “Fear not, for I am with you; be not dismayed, for I am your God.',
+      'Psalm 46:1 – “God is our refuge and strength, an ever-present help in trouble.”',
+      'Matthew 6:33 – “But seek first the kingdom of God and his righteousness, and all these things will be added to you',
+      'Romans 12:12 – “Be joyful in hope, patient in affliction, faithful in prayer.”',
+      '1 Corinthians 13:4 – “Love is patient, love is kind. It does not envy, it does not boast, it is not proud.”',
+      'John 14:27 – “Peace I leave with you; my peace I give to you. Not as the world gives do I give to you. Let not your hearts be troubled, neither let them be afraid.',
+      '2 Corinthians 5:17 – “Therefore, if anyone is in Christ, the new creation has come: The old has gone, the new is here!”',
+      'Romans 8:28 – “And we know that in all things God works for the good of those who love him.',
+      '2 Timothy 1:7 – “For God has not given us a spirit of fear, but of power and of love and of a sound mind.”',
+      'Hebrews 13:5 – “Keep your lives free from the love of money and be content with what you have, because God has said, “Never will I leave you; never will I forsake you.”’',
+      '1 John 4:18 – “There is no fear in love. But perfect love drives out fear, because fear has to do with punishment. The one who fears is not made perfect in love.',
+      'Romans 12:2 – “And do not be conformed to this world, but be transformed by the renewal of your mind, that by testing you may discern what is the will of God, what is good and acceptable and perfect.”',
+      '1 Peter 5:7 – “Cast all your anxiety on him because he cares for you.',
+      '2 Corinthians 4:18 – “So we fix our eyes not on what is seen, but on what is unseen, since what is seen is temporary, but what is unseen is eternal.',
+      '1 John 5:14 – “This is the confidence we have in approaching God: that if we ask anything according to his will, he hears us.',
+      '1 Corinthians 10:13 – “No temptation has overtaken you except what is common to mankind. And God is faithful; he will not let you be tempted beyond what you can bear. But when you are tempted, he will also provide a way out so that you can endure it.',
+      '1 Peter 5:7 – “Cast all your anxiety on him because he cares for you.”',
+      'Joshua 1:9 – “Be strong and courageous. Do not be afraid; for the Lord your God will be with you wherever you go.”',
+      'Psalm 23:4 – “Even though I walk through the darkest valley, I will fear no evil, for you are with me; your rod and your staff, they comfort me.',
+      'Psalm 119:105 – “Your word is a lamp to my feet and a light to my path.”',
+      'Psalm 119:11 – “I have hidden your word in my heart that I might not sin against you.”',
+      'Psalm 119:114 – “You are my refuge and my shield; I have put my hope in your word.”',
+      'Psalm 119:144 – “I delight in your commands because I love them.”',
+      'Psalm 119:174 – “The law of the Lord is perfect, reviving the soul. The statutes of the Lord are trustworthy, making wise the simple.”',
+      'Psalm 119:18 – “Open my eyes that I may see wondrous things from your law.”',
+      'Psalm 119:128 – “In your word I have sought refuge; let me never be put to shame; I long for your commands that give me understanding.',
+      'Psalm 119:130 – “The unfolding of your words gives light; it imparts understanding to the simple.',
+      'Psalm 119:138 – “Open my eyes, that I may behold wondrous things from your law.”',
+      'Psalm 119:147 – “I rise before dawn and cry for help; I have put my hope in your word.',
+      'Psalm 119:151 – “You are near, O Lord, and all your commands are trustworthy.',
+      'Proverbs 16:3 – “Commit to the Lord whatever you do, and he will establish your plans.”',
+      'Proverbs 19:21 – “Many are the plans in a man’s heart, but it is the Lord’s purpose that prevails.',
+      'Proverbs 29:18 – “Where there is no vision, the people perish: but he that keepeth the law, happy is he.”',
+      'Proverbs 22:6 – “Train up a child in the way he should go, and when he is old he will not depart from it.',
+      'Proverbs 13:14 – “The law of the wise is a fountain of life, to turn away from the snares of death.',
+      
+      
+      
+      
+    ];
+    verseBtn.addEventListener('click', ()=>{ const v = verses[Math.floor(Math.random()*verses.length)]; viewTitle.textContent='Verse of the day'; viewMeta.textContent=''; viewBody.textContent = v; });
+
+    // initial render
+    renderNotes();
+
+    // small safety note in console
+    console.log('Secret Notes — all data stored only in your browser localStorage. Private notes are encrypted with your password using WebCrypto.');
+  </script>
+</body>
+</html>
